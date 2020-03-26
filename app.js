@@ -3,6 +3,8 @@ const { promisify } = require('util');
 const webdriver = require('selenium-webdriver');
 const { Builder, By, until } = webdriver;
 
+const browser = (process.argv.length === 0)? 'chrome' : process.argv[2];
+
 let chrome = require('selenium-webdriver/chrome');
 let chromedriver = require('chromedriver');
 chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
@@ -16,17 +18,21 @@ const capabilitiesOptions = {
     ]
 };
 
-
 const safariCapabilities = webdriver.Capabilities.safari();
 safariCapabilities.set('safariOptions', capabilitiesOptions);
 
 const chromeCapabilities = webdriver.Capabilities.chrome();
 chromeCapabilities.set('chromeOptions', capabilitiesOptions);
 
+const capabilities = {
+    'chrome': chromeCapabilities,
+    'safari': safariCapabilities
+};
+
 const Config = {
     url: 'https://dev.ooen.me/',
     user: {name: 'ConnectedDoll', password: 'dxjp4s5J'},
-    capabilities: chromeCapabilities
+    capabilities: capabilities[browser]
 };
 
 const takeScreenshot = async function (driver) {
@@ -37,6 +43,21 @@ const takeScreenshot = async function (driver) {
     const fileName = 'screenshot/' + (new Date()).getTime() + '.jpg';
     await promisify(fs.writeFile)(fileName, buffer);
 
+    return Promise.resolve({status: 'ok'});
+};
+
+const click = async function (driver, id) {
+    if (browser === 'safari') {
+        const elem = await driver.findElement(By.id(id));
+        await driver.executeScript("arguments[0].click();", elem);
+    } else if (browser === 'chrome') {
+        await driver.findElement(By.id(id)).click();    
+    }
+    return Promise.resolve({status: 'ok'});    
+};
+
+const wait = async function (driver, sec) {
+    const w = async ele => await driver.wait(ele, sec * 1000);
     return Promise.resolve({status: 'ok'});
 };
 
@@ -64,12 +85,13 @@ const takeScreenshot = async function (driver) {
     await driver.wait(until.elementLocated(By.id('allow')), 10000);
     await driver.findElement(By.id("username_or_email")).sendKeys( Config.user.name );
     await driver.findElement(By.id("password")).sendKeys( Config.user.password );
-    const wait1 = async ele => await driver.wait(ele, 3 * 1000);
+    wait(driver, 3);
 
-    await driver.findElement(By.id("allow")).click();
+    // safari の場合 javascript click 実行
+    await click(driver, 'allow');
+
     await driver.wait(until.elementLocated(By.className('screenName')), 30 * 1000);
-    
-    const wait2 = async ele => await driver.wait(ele, 30 * 1000);
+    wait(driver, 30);
 
     // 画面キャプチャ
     await takeScreenshot(driver);
