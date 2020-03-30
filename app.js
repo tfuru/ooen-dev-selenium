@@ -9,24 +9,43 @@ let chrome = require('selenium-webdriver/chrome');
 let chromedriver = require('chromedriver');
 chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
 
-const capabilitiesOptions = {
+const safariCapabilities = webdriver.Capabilities.safari();
+safariCapabilities.set('safariOptions', {
     args: [
         '--headless',
         '--no-sandbox',
         '--disable-gpu',
         `--window-size=1980,1200`
     ]
-};
-
-const safariCapabilities = webdriver.Capabilities.safari();
-safariCapabilities.set('safariOptions', capabilitiesOptions);
+});
 
 const chromeCapabilities = webdriver.Capabilities.chrome();
-chromeCapabilities.set('chromeOptions', capabilitiesOptions);
+chromeCapabilities.set('chromeOptions', {
+    args: [
+        '--headless',
+        '--no-sandbox',
+        '--disable-gpu',
+        `--window-size=1980,1200`
+    ]
+});
+
+// ‘safari:useSimulator’: true ‘platformName’: ‘ios’
+const safariIosCapabilities = webdriver.Capabilities.safari();
+safariIosCapabilities.set('safari:useSimulator', true);
+safariIosCapabilities.set('platformName', 'ios');
+safariIosCapabilities.set('safariOptions', {
+    args: [
+        '--headless',
+        '--no-sandbox',
+        '--disable-gpu',
+        `--window-size=1980,1200`
+    ]
+});
 
 const capabilities = {
     'chrome': chromeCapabilities,
-    'safari': safariCapabilities
+    'safari': safariCapabilities,
+    'ios': safariIosCapabilities
 };
 
 const Config = {
