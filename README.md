@@ -7,4 +7,5 @@
 npm i
 npm run app -- chrome
 npm run app -- safari
+npm run app -- ios
 ```
