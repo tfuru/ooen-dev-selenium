@@ -66,13 +66,24 @@ const takeScreenshot = async function (driver) {
 };
 
 const click = async function (driver, id) {
-    if (browser === 'safari') {
+    if ((browser === 'safari') || (browser === 'ios')) {
         const elem = await driver.findElement(By.id(id));
         await driver.executeScript("arguments[0].click();", elem);
     } else if (browser === 'chrome') {
         await driver.findElement(By.id(id)).click();    
     }
     return Promise.resolve({status: 'ok'});    
+};
+
+const sendKeys = async function (driver, id, txt) {
+    if ((browser === 'safari') || (browser === 'ios')) {
+        const elem = await driver.findElement(By.id(id));
+        await driver.executeScript("arguments[0].click();", elem);
+        await driver.executeScript("arguments[0].value = '" +txt+ "';", elem);
+    } else if (browser === 'chrome') {
+        await driver.findElement(By.id(id)).click();    
+    }
+    return Promise.resolve({status: 'ok'}); 
 };
 
 const wait = async function (driver, sec) {
@@ -96,15 +107,20 @@ const wait = async function (driver, sec) {
     await driver.get( Config.url );
 
     // 要素が表示されるまで待つ
+    console.log('btnSignIn click');
+    wait(driver, 30);    
     await driver.wait(until.elementLocated(By.id('btnSignIn')), 10000);
-
-    await driver.findElement(By.id("btnSignIn")).click();
+    await click(driver, 'btnSignIn');
 
     // 要素が表示されるまで待つ
+    console.log('allow click');
+    await driver.wait(until.elementLocated(By.id('username_or_email')), 10000);
+    await driver.wait(until.elementLocated(By.id('password')), 10000);
     await driver.wait(until.elementLocated(By.id('allow')), 10000);
-    await driver.findElement(By.id("username_or_email")).sendKeys( Config.user.name );
-    await driver.findElement(By.id("password")).sendKeys( Config.user.password );
-    wait(driver, 3);
+    wait(driver, 30);
+    await sendKeys(driver, 'username_or_email', Config.user.name);
+    await sendKeys(driver, 'password', Config.user.password);
+    wait(driver, 30);
 
     // safari の場合 javascript click 実行
     await click(driver, 'allow');
@@ -117,5 +133,4 @@ const wait = async function (driver, sec) {
 
     // ブラウザ終了
     driver.quit();
-
 })();
